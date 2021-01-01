@@ -3,10 +3,15 @@ import sys
 sys.path.append("..\\")
 from util import Util
 
+# calling util to import important functions
 utility = Util()
-MOVES_LIMIT = 2
+
+# max number of moves to reach food
+MOVES_LIMIT = 200
 
 class RandomPath():
+
+    # initalizing few imp variables, will be used later
     def __init__(self):
         print("Random path called")
         self.player_pos = utility.get_player_pos()
@@ -15,30 +20,32 @@ class RandomPath():
         self.num_moves = 0
         self.direction = "Right"
 
+    # function to generate legal moves for the player
     def get_next_moves(self):
         num_moves = 0
+
+        # list of moves, max size = MOVES_LIMIT, min = number of moves taken to reach food
         moves_list = []
         while not utility.check_food_reached(self.player_pos):
-        # for i in range(50):
+            # if player tries to collide with the walls
             if utility.check_collisions(self.player_pos):
-                break
+                continue
             if num_moves > MOVES_LIMIT:
                 break
 
+            # getting all near by positions which are legal to move on
             near_by_pos = utility.near_by_pos(self.player_pos)
-            #print("near_by_pos", near_by_pos)
-            manhattan_dist = []
-            for each_pos in near_by_pos:
-                pos_coordinate = utility.direction_to_loc(each_pos, self.player_pos)
-                distance = utility.manhattan_dist(self.player_pos)
-                manhattan_dist.append((distance,each_pos))
+            num_pos = len(near_by_pos)
 
-            manhattan_dist.sort()
-            #print("manhattan_dist", manhattan_dist)
+            # last element = len (list) -1 , thus genrating random btw it and 0
+            random_pos = random.randint(0,num_pos-1)
 
-            new_position = utility.direction_to_loc(manhattan_dist[0][1], self.player_pos)
-            # print("new_position: ", manhattan_dist[0][1] , new_position)
+            # near_by_pos stores directions, finding location based on direction
+            new_position = utility.direction_to_loc(near_by_pos[random_pos], self.player_pos)
+
+            # changin player pos to new position
             self.player_pos = new_position
             num_moves += 1
             moves_list.append(new_position)
+
         return moves_list

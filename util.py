@@ -1,3 +1,5 @@
+import math
+
 MOVE_INCREMENT = 20
 MOVES_PER_SECOND = 15
 GAME_SPEED = 1000 // MOVES_PER_SECOND
@@ -19,6 +21,12 @@ class Util():
         (x_pos_current, y_pos_current) = our_pos[0]
 
         return abs(x_pos_food - x_pos_current) + abs(y_pos_food - y_pos_current)
+
+    def euclidean_dist(self, our_pos):
+        (x_pos_food, y_pos_food) = self.food_pos[0]
+        (x_pos_current, y_pos_current) = our_pos[0]
+
+        return math.sqrt((x_pos_food - x_pos_current)**2 + (y_pos_food - y_pos_current)**2)
 
     def near_by_pos(self, current_loc):
         (x_pos, y_pos) = current_loc[0]
