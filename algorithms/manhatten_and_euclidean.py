@@ -8,7 +8,6 @@ MOVES_LIMIT = 100
 
 class ManhattenEuclidean():
     def __init__(self):
-        print("Random path called")
         self.player_pos = utility.get_player_pos()
         self.wall_pos = utility.get_walls_pos()
         self.food_pos = utility.get_food_pos()
@@ -46,6 +45,7 @@ class ManhattenEuclidean():
     def get_next_moves_euclidean(self):
         num_moves = 0
         moves_list = []
+        visited_list = []
         while not utility.check_food_reached(self.player_pos):
         # for i in range(50):
             if utility.check_collisions(self.player_pos):
@@ -60,6 +60,7 @@ class ManhattenEuclidean():
                 pos_coordinate = utility.direction_to_loc(each_pos, self.player_pos)
                 distance = utility.euclidean_dist(pos_coordinate)
                 euclidean_dist.append((distance,each_pos))
+                visited_list.append(pos_coordinate)
 
             euclidean_dist.sort()
             #print("manhattan_dist", manhattan_dist)
@@ -69,4 +70,4 @@ class ManhattenEuclidean():
             self.player_pos = new_position
             num_moves += 1
             moves_list.append(new_position)
-        return moves_list
+        return moves_list, visited_list

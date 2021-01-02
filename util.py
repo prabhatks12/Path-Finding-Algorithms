@@ -1,12 +1,10 @@
 import math
 
 MOVE_INCREMENT = 20
-MOVES_PER_SECOND = 15
-GAME_SPEED = 1000 // MOVES_PER_SECOND
+GAME_SPEED = 10
 
 class Util():
     def __init__(self):
-        print("Utility called")
         self.player_pos = [(40,60)]
         self.wall_pos = [(400,220),(380,220),(360,220),(340,220),(320,220),(420,220),(440,220),
                         (400,200),(380,200),(360,200),(340,200),(320,200),(420,200),(440,200),
@@ -51,6 +49,16 @@ class Util():
             or y_pos in (40, 440)
             or (x_pos, y_pos) in self.wall_pos
         )
+
+    def legal_move(self, prev_pos, new_pos):
+        (x_pos_food, y_pos_food) = prev_pos
+        (x_pos_current, y_pos_current) = new_pos
+
+        if abs(x_pos_food - x_pos_current) + abs(y_pos_food - y_pos_current) == MOVE_INCREMENT:
+            return True
+        else:
+            return False
+
 
     def direction_to_loc(self, new_direction, player_pos):
         (x_pos, y_pos) = player_pos[0]
