@@ -28,7 +28,6 @@ class PathFinding(tk.Canvas):
         self.direction = "Right"
 
         # calling functions to create the board
-        self.bind_all("<Key>", self.on_key_press)
         self.load_assets()
         self.create_objects()
         self.show_algorithms()
@@ -70,10 +69,13 @@ class PathFinding(tk.Canvas):
     """
     def show_algorithms(self):
         # string to store option selected
-        var_string = tk.StringVar(self, "random")
+        var_string = tk.StringVar(self, "reset_board")
         self.create_text(200, 20, text=f"Select an option", tag="option", fill="#fff", font=10)
 
-        text_value = {'Random movement' : 'random',
+        text_value = {
+                     'Reset Board' : 'reset_board',
+                     'Free Play' : 'free_play',
+                     'Random movement' : 'random',
                      'Closest using Manhatten' : 'manhatten',
                      'Closest using Euclidean' : 'euclidean',
                      'Breath First Search' : 'bfs',
@@ -83,6 +85,8 @@ class PathFinding(tk.Canvas):
 
         # adding all radiobuttons to the frames
         self.frame = tk.Frame(left_pannal, borderwidth=3)
+        text = tk.Label(self.frame, text="Select the algorithm:\n", font=20)
+        text.pack()
 
         # adding radiobuttons for all algorithms
         for text in text_value:
@@ -98,9 +102,15 @@ class PathFinding(tk.Canvas):
         # updating the text on top for selected option
         options = self.find_withtag("option")
         self.itemconfigure(options, text="You have selected : " + option_selected, tag="option")
+
         # reseting the board first to stop all ongoing activites
         self.reset_board()
+
         # calling the selected function
+        if option_selected =="reset_board":
+            self.reset_board()
+        if option_selected =="free_play":
+            self.run_free_play()
         if option_selected == "random":
             self.run_random()
         elif option_selected == "manhatten":
@@ -116,11 +126,18 @@ class PathFinding(tk.Canvas):
 
 
     """
+    Use keyboard to move player around the board
+    """
+    def run_free_play(self):
+        self.bind_all("<Key>", self.on_key_press)
+
+
+    """
     Function to randomly move the player
     """
     def run_random(self):
         self.num_moves = 0
-        random_algo = random_path.RandomPath()
+        random_algo = random_path.RandomPath(utility)
         self.moves_list = random_algo.get_next_moves()
         self.moves_list = self.moves_list[::-1]
         self.perform_actions()
@@ -132,13 +149,13 @@ class PathFinding(tk.Canvas):
     """
     def run_manh_euclidean(self, run_manh):
         self.num_moves = 0
-        manh_euclidean = manhatten_and_euclidean.ManhattenEuclidean()
-
+        manh_euclidean = manhatten_and_euclidean.ManhattenEuclidean(utility)
         if run_manh:
             self.player_path, self.visited_path = manh_euclidean.get_next_moves_manhatten()
         else:
             self.player_path, self.visited_path = manh_euclidean.get_next_moves_euclidean()
 
+        # print("\n player ", self.player_path , " \n\nvisited  ", self.visited_path)
         self.visited_path, self.player_path = self.visited_path[::-1], self.player_path[::-1]
         self.show_visited_pos()
         return
@@ -149,7 +166,7 @@ class PathFinding(tk.Canvas):
     """
     def run_bfs_dfs(self, run_bfs):
         self.num_moves = 0
-        bfsdfs_algo = bfs_dfs.BfsDfs()
+        bfsdfs_algo = bfs_dfs.BfsDfs(utility)
 
         if run_bfs:
             self.player_path, self.visited_path = bfsdfs_algo.get_next_moves_bfs()
@@ -165,9 +182,9 @@ class PathFinding(tk.Canvas):
     """
     def run_astar(self):
         self.num_moves = 0
-        astar_algo = heuristic.AStar()
+        astar_algo = heuristic.AStar(utility)
         self.player_path, self.visited_path = astar_algo.get_next_moves()
-        self.visited_path, self.player_path = self.visited_path[::-1], self.player_path[::-1]
+        self.visited_path, self.player_path = self.visited_path[::-1], self.player_path
         self.show_visited_pos()
         return
 
@@ -198,10 +215,20 @@ class PathFinding(tk.Canvas):
     """
     def reset_board(self):
         try:
+            self.visited_path = []
+            self.player_path = []
+            self.moves_list = []
+            # disbling movement based on keys
+            root.unbind_all('<Key>')
             # clearing all the locations which are visited and player image
             self.delete("visited")
-            self.delete("player")
-            self.create_image(*self.player_pos, image = self.player, tag = "player")
+            self.coords(self.find_withtag("player"),*utility.get_player_pos())
+
+            # updating number of moves
+            self.num_moves = 0
+            moves = self.find_withtag("moves")
+            self.itemconfigure(moves, text=f"Moves: {self.num_moves}", tag="moves")
+
         except IOError as error:
             print("[Error] Error in reset_board(), cause: ", error)
 
@@ -226,7 +253,8 @@ class PathFinding(tk.Canvas):
     """
     def show_player_moves(self):
         try:
-            self.reset_board()
+            self.delete("visited")
+            self.coords(self.find_withtag("player"),*self.player_pos)
             if len(self.player_path) == 0:
                 return
             else:

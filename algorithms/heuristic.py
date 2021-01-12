@@ -1,10 +1,9 @@
 import random
 import sys
-sys.path.append("..\\")
-from util import Util
+# sys.path.append("..\\")
+# from util import Util
 import math
 
-utility = Util()
 LOOP_LIMIT = 5000
 
 """
@@ -14,10 +13,11 @@ AStar Class:
 
 class AStar():
 
-    def __init__(self):
-        self.player_pos = utility.get_player_pos()
-        self.wall_pos = utility.get_walls_pos()
-        self.food_pos = utility.get_food_pos()
+    def __init__(self, utility):
+        self.utility = utility
+        self.player_pos = self.utility.get_player_pos()
+        self.wall_pos = self.utility.get_walls_pos()
+        self.food_pos = self.utility.get_food_pos()
         self.num_moves = 0
         self.direction = "Right"
 
@@ -67,10 +67,10 @@ class AStar():
 
             (x, y) = currentNode.position
 
-            neighbors = utility.near_by_pos(currentNode.position)
+            neighbors = self.utility.near_by_pos(currentNode.position)
 
             for neighborDir in neighbors:
-                neighborPos = utility.direction_to_loc(neighborDir, currentNode.position)
+                neighborPos = self.utility.direction_to_loc(neighborDir, currentNode.position)
                 # creating a neighbor node
                 neighbor = Node(neighborPos ,currentNode)
                 # if neighbour already visited
@@ -78,12 +78,12 @@ class AStar():
                     continue
 
                 # calculating euclidean distance for cost estimation
-                neighbor.g = utility.euclidean_dist(startNode.position, neighbor.position)
-                neighbor.h = utility.euclidean_dist(neighbor.position, targetNode.position)
+                neighbor.g = self.utility.euclidean_dist(startNode.position, neighbor.position)
+                neighbor.h = self.utility.euclidean_dist(neighbor.position, targetNode.position)
 
                 # can use manhattan_dist too
-                # neighbor.g = utility.manhattan_dist(startNode.position, neighbor.position)
-                # neighbor.h = utility.manhattan_dist(neighbor.position, targetNode.position)
+                # neighbor.g = self.utility.manhattan_dist(startNode.position, neighbor.position)
+                # neighbor.h = self.utility.manhattan_dist(neighbor.position, targetNode.position)
                 neighbor.f = neighbor.g + neighbor.h
 
                 # if neighbour has lower f value and is in openList

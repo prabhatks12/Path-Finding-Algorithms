@@ -1,9 +1,8 @@
 import random
 import sys
-sys.path.append("..\\")
-from util import Util
+# sys.path.append("..\\")
+# from util import Util
 
-utility = Util()
 LOOP_LIMIT = 5000
 
 """
@@ -14,10 +13,11 @@ BfsDfs Class:
 
 class BfsDfs():
 
-    def __init__(self):
-        self.player_pos = utility.get_player_pos()
-        self.wall_pos = utility.get_walls_pos()
-        self.food_pos = utility.get_food_pos()
+    def __init__(self, utility):
+        self.utility = utility
+        self.player_pos = self.utility.get_player_pos()
+        self.wall_pos = self.utility.get_walls_pos()
+        self.food_pos = self.utility.get_food_pos()
         self.num_moves = 0
         self.direction = "Right"
 
@@ -41,18 +41,18 @@ class BfsDfs():
             current_node, current_path = queue.pop(0)
             if loop_counter > LOOP_LIMIT:
                 break
-            if utility.check_food_reached(current_node):
+            if self.utility.check_food_reached(current_node):
                 return current_path, visited_list
 
             # avoiding already explored locatios
             if current_node not in visited_list:
                 visited_list.append(current_node)
 
-                near_by_pos = utility.near_by_pos(current_node)
+                near_by_pos = self.utility.near_by_pos(current_node)
 
                 for direction in near_by_pos:
                     # changing directions to coordinate
-                    location =  utility.direction_to_loc(direction, current_node)
+                    location =  self.utility.direction_to_loc(direction, current_node)
                     move_next = current_path + [location]
                     queue.append([location, move_next])
 
@@ -81,7 +81,7 @@ class BfsDfs():
 
             if loop_counter > LOOP_LIMIT:
                 break
-            if utility.check_food_reached(current_node):
+            if self.utility.check_food_reached(current_node):
                 return current_path, visited_list
 
             # avoiding already explored locations
@@ -89,11 +89,11 @@ class BfsDfs():
                 visited_list.append(current_node)
 
                 # reteriving near by positions
-                near_by_pos = utility.near_by_pos(current_node)
+                near_by_pos = self.utility.near_by_pos(current_node)
 
                 for direction in near_by_pos:
                     # changing directions to coordinate
-                    location =  utility.direction_to_loc(direction, current_node)
+                    location =  self.utility.direction_to_loc(direction, current_node)
                     move_next = current_path + [location]
                     stack.append([location, move_next])
 
