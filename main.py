@@ -1,13 +1,19 @@
 import tkinter as tk
 from PIL import Image, ImageTk
-from algorithms import random_path, manhatten_and_euclidean, bfs_dfs
+from algorithms import random_path, manhatten_and_euclidean, bfs_dfs, heuristic
 from util import Util
 from time import sleep
 
 MOVE_INCREMENT = 20
-GAME_SPEED = 10
+EXPLORED_POS_SPEED = 10
+CORRECT_PATH_SPEED = 50
 
 utility = Util()
+
+"""
+PathFinding Class:
+    Class for creating board and show player's movememt using Tkinter face
+"""
 
 class PathFinding(tk.Canvas):
 
@@ -27,7 +33,10 @@ class PathFinding(tk.Canvas):
         self.create_objects()
         self.show_algorithms()
 
-    # function to load images from assets folder
+
+    """
+    Function to load images from assets folder
+    """
     def load_assets(self):
         try:
             # loading player, wall, food and movement image
@@ -41,7 +50,9 @@ class PathFinding(tk.Canvas):
             root.destroy()
 
 
-    # function to create and display loaded images
+    """
+    Function to create and display loaded images
+    """
     def create_objects(self):
          # displaying walls
         for x_pos, y_pos in self.wall_pos:
@@ -54,26 +65,35 @@ class PathFinding(tk.Canvas):
         self.create_text(40, 20, text=f"Moves: {self.num_moves}", tag="moves", fill="#fff", font=10)
 
 
-    # function to show all algorithms as option on left side of screen
+    """
+    Function to show all algorithms as option on left side of screen
+    """
     def show_algorithms(self):
         # string to store option selected
         var_string = tk.StringVar(self, "random")
         self.create_text(200, 20, text=f"Select an option", tag="option", fill="#fff", font=10)
 
+        text_value = {'Random movement' : 'random',
+                     'Closest using Manhatten' : 'manhatten',
+                     'Closest using Euclidean' : 'euclidean',
+                     'Breath First Search' : 'bfs',
+                     'Depth First Search' : 'dfs',
+                     'Heuristic A*' : 'astar'
+                    }
+
         # adding all radiobuttons to the frames
         self.frame = tk.Frame(left_pannal, borderwidth=3)
 
         # adding radiobuttons for all algorithms
-        tk.Radiobutton(self.frame, text='Random movement', variable=var_string, value='random', command = lambda: self.call_algorithms(var_string.get()) ).pack(anchor=tk.W)
-        tk.Radiobutton(self.frame, text='Closest using Manhatten', variable=var_string, value='manhatten', command = lambda: self.call_algorithms(var_string.get()) ).pack(anchor=tk.W)
-        tk.Radiobutton(self.frame, text='Closest using Euclidean', variable=var_string, value='euclidean', command = lambda: self.call_algorithms(var_string.get()) ).pack(anchor=tk.W)
-        tk.Radiobutton(self.frame, text='Breath First Search', variable=var_string, value='bfs', command = lambda: self.call_algorithms(var_string.get()) ).pack(anchor=tk.W)
-        tk.Radiobutton(self.frame, text='Depth First Search', variable=var_string, value='dfs', command = lambda: self.call_algorithms(var_string.get()) ).pack(anchor=tk.W)
+        for text in text_value:
+            tk.Radiobutton(self.frame, text=text, variable=var_string, value=text_value[text], command = lambda: self.call_algorithms(var_string.get()) ).pack(anchor=tk.W)
 
         self.frame.pack(side=tk.LEFT)
 
 
-    # function to call algorithms base on option selected and update the text on top
+    """
+    Function to call algorithms base on option selected and update the text on top
+    """
     def call_algorithms(self, option_selected):
         # updating the text on top for selected option
         options = self.find_withtag("option")
@@ -91,55 +111,70 @@ class PathFinding(tk.Canvas):
             self.run_bfs_dfs(True)
         elif option_selected == "dfs":
             self.run_bfs_dfs(False)
+        elif option_selected == "astar":
+            self.run_astar()
 
 
-    # function to randomly move the player
+    """
+    Function to randomly move the player
+    """
     def run_random(self):
         self.num_moves = 0
         random_algo = random_path.RandomPath()
         self.moves_list = random_algo.get_next_moves()
         self.moves_list = self.moves_list[::-1]
-        self.after(GAME_SPEED, self.perform_actions)
+        self.perform_actions()
         return
 
 
-    # function to run player to positions closest to food based on
-    # manhatten or euclidean distance
+    """
+    Function to run player to positions closest to food based on manhatten or euclidean distance
+    """
     def run_manh_euclidean(self, run_manh):
         self.num_moves = 0
         manh_euclidean = manhatten_and_euclidean.ManhattenEuclidean()
 
         if run_manh:
-            self.moves_list = manh_euclidean.get_next_moves_manhatten()
-            self.moves_list = self.moves_list[::-1]
-            self.after(GAME_SPEED, self.perform_actions)
+            self.player_path, self.visited_path = manh_euclidean.get_next_moves_manhatten()
         else:
             self.player_path, self.visited_path = manh_euclidean.get_next_moves_euclidean()
-            self.player_path = self.player_path[::-1]
-            self.visited_path = self.visited_path[::-1]
-            self.after(GAME_SPEED, self.show_visited_pos)
+
+        self.visited_path, self.player_path = self.visited_path[::-1], self.player_path[::-1]
+        self.show_visited_pos()
         return
 
 
-    # function to run player to positions based on BFS or DFS algorithm
+    """
+    Function to run player to positions based on BFS or DFS algorithm
+    """
     def run_bfs_dfs(self, run_bfs):
         self.num_moves = 0
         bfsdfs_algo = bfs_dfs.BfsDfs()
 
         if run_bfs:
             self.player_path, self.visited_path = bfsdfs_algo.get_next_moves_bfs()
-            self.visited_path = self.visited_path[::-1]
-            self.player_path = self.player_path[::-1]
-            # print(len(player_path), " : ", len(visited_path))
-            self.after(GAME_SPEED, self.show_visited_pos)
         else:
             self.player_path, self.visited_path = bfsdfs_algo.get_next_moves_dfs()
-            self.visited_path = self.visited_path[::-1]
-            self.player_path = self.player_path[::-1]
-            self.after(GAME_SPEED, self.show_visited_pos)
+        self.visited_path, self.player_path = self.visited_path[::-1], self.player_path[::-1]
+        self.show_visited_pos()
         return
 
 
+    """
+    Function to run A star algorithm on player
+    """
+    def run_astar(self):
+        self.num_moves = 0
+        astar_algo = heuristic.AStar()
+        self.player_path, self.visited_path = astar_algo.get_next_moves()
+        self.visited_path, self.player_path = self.visited_path[::-1], self.player_path[::-1]
+        self.show_visited_pos()
+        return
+
+
+    """
+    Function to move player based on key pressed on keyboard
+    """
     def on_key_press(self, key):
         new_direction = key.keysym
         new_position = utility.direction_to_loc(new_direction, self.player_pos)
@@ -147,15 +182,20 @@ class PathFinding(tk.Canvas):
             self.move_player(new_position)
 
 
+    """
+    Function to move player based on path stored in moves_list
+    """
     def perform_actions(self):
         if len(self.moves_list) == 0:
             return
         move = self.moves_list.pop()
         self.move_player(move)
-        self.after(GAME_SPEED, self.perform_actions)
+        self.after(CORRECT_PATH_SPEED, self.perform_actions)
 
 
-    # function to bring board on intial state
+    """
+    Function to bring board on intial state
+    """
     def reset_board(self):
         try:
             # clearing all the locations which are visited and player image
@@ -165,8 +205,9 @@ class PathFinding(tk.Canvas):
         except IOError as error:
             print("[Error] Error in reset_board(), cause: ", error)
 
-
-    # function to show explored positions
+    """
+    Function to show explored positions
+    """
     def show_visited_pos(self):
         try:
             if len(self.visited_path) == 0:
@@ -174,13 +215,15 @@ class PathFinding(tk.Canvas):
             else:
                 next_position = self.visited_path.pop()
                 self.create_image(*next_position, image = self.movement, tag = "visited")
-                self.after(GAME_SPEED, self.show_visited_pos)
+                self.after(EXPLORED_POS_SPEED, self.show_visited_pos)
         except IOError as error:
             print("[Error] Error in show_visited_pos(), cause: ", error)
         return
 
 
-    # function to show path taken by player to reach food
+    """
+    Function to show path taken by player to reach food
+    """
     def show_player_moves(self):
         try:
             self.reset_board()
@@ -189,12 +232,14 @@ class PathFinding(tk.Canvas):
             else:
                 next_position = self.player_path.pop()
                 self.move_player(next_position)
-                self.after(GAME_SPEED, self.show_player_moves)
+                self.after(CORRECT_PATH_SPEED, self.show_player_moves)
         except IOError as error:
             print("[Error] Error in show_player_moves(), cause: ", error)
 
 
-    # move player on the board and update the score
+    """
+    Function to move player on the board and update the score
+    """
     def move_player(self, next_position):
         # moving the player
         self.player_pos = next_position
