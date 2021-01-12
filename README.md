@@ -20,4 +20,4 @@ Purpose of this project is to apply as many algorithms as possible to make playe
 
 ## Results
 
-[![Watch the video](/screencapture/board.png)](/screencapture/video.mp4)
+[![Watch the video](/screencapture/board.png)](https://youtu.be/tgK6Mjja2JA)
